@@ -68,12 +68,12 @@ export const validate = (schema: ZodSchema, dataSource: 'body' | 'params' | 'que
             (req as any).validated = result;
 
             // Also merge validated data back for convenience
-      if (result && typeof result === 'object') {
-        const resObj = result as Record<string, any>;
-        if (resObj.body) req.body = resObj.body;
-        if (resObj.params) req.params = resObj.params;
-        if (resObj.query) req.query = resObj.query;
-      }
+            if (result && typeof result === 'object') {
+                const resObj = result as Record<string, any>;
+                if (resObj.body) req.body = resObj.body;
+                if (resObj.params) req.params = resObj.params;
+                if (resObj.query) req.query = resObj.query;
+            }
         } catch (error) {
             if (error instanceof z.ZodError) {
                 const errors = formatZodErrors(error);
