@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node -r module-alias/register dist/index.js",
     "prod": "npm run build && npm start",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -26,6 +26,19 @@
     "url": "https://github.com/Akash786147/Zorvyn-fintech-backend-assn/issues"
   },
   "homepage": "https://github.com/Akash786147/Zorvyn-fintech-backend-assn#readme",
+  "_moduleAliases": {
+    "@": "./dist",
+    "@config": "./dist/config",
+    "@routes": "./dist/routes",
+    "@controllers": "./dist/controllers",
+    "@services": "./dist/services",
+    "@middleware": "./dist/middleware",
+    "@utils": "./dist/utils",
+    "@types": "./dist/types",
+    "@db": "./dist/db",
+    "@validators": "./dist/validators",
+    "@schemas": "./dist/schemas"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
@@ -35,10 +48,12 @@
     "express": "^5.2.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "module-alias": "^2.3.4",
     "pg": "^8.20.0",
     "redis": "^5.11.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "tsconfig-paths": "^4.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

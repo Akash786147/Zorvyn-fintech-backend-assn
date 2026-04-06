@@ -23,6 +23,7 @@
     "ignoreDeprecations": "6.0",
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
+    "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],
       "@config/*": ["./src/config/*"],
@@ -32,7 +33,9 @@
       "@middleware/*": ["./src/middleware/*"],
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
-      "@db/*": ["./src/db/*"]
+      "@db/*": ["./src/db/*"],
+      "@validators/*": ["./src/validators/*"],
+      "@schemas/*": ["./src/schemas/*"]
     }
   },
   "include": ["src/**/*"],
