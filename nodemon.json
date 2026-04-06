@@ -1,0 +1,19 @@
+{
+    "watch": [
+        "src"
+    ],
+    "ext": "ts",
+    "ignore": [
+        "src/**/*.spec.ts",
+        "src/**/*.test.ts"
+    ],
+    "exec": "ts-node",
+    "script": "./src/index.ts",
+    "env": {
+        "NODE_ENV": "development"
+    },
+    "delay": 500,
+    "verbose": true,
+    "restartable": "rs",
+    "signal": "SIGTERM"
+}
