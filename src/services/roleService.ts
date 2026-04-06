@@ -2,11 +2,11 @@
  * Role Service - handles role management
  */
 
-import { getDatabase } from '@config/database';
-import { roles } from '@db/schema';
+import { getDatabase } from '../config/database';
+import { roles } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { createLogger } from '@utils/logger';
-import { errorFactory } from '@utils/errors';
+import { createLogger } from '../utils/logger';
+import { errorFactory } from '../utils/errors';
 
 const logger = createLogger('RoleService');
 

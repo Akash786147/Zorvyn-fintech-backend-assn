@@ -1,9 +1,5 @@
-/**
- * Redis client and cache management utility
- */
-
 import { createClient, RedisClientType } from 'redis';
-import config from '@config/environment';
+import config from '../config/environment';
 import { createLogger } from './logger';
 
 const logger = createLogger('redis');

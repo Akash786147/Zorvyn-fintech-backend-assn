@@ -1,8 +1,3 @@
-/**
- * Logger configuration and utility
- * Provides structured logging for the application
- */
-
 export enum LogLevel {
     ERROR = 'ERROR',
     WARN = 'WARN',

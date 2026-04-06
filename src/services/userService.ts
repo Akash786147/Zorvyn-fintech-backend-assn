@@ -1,12 +1,8 @@
-/**
- * User Service - handles user management
- */
-
-import { getDatabase } from '@config/database';
-import { users } from '@db/schema';
+import { getDatabase } from '../config/database';
+import { users } from '../db/schema';
 import { eq, or } from 'drizzle-orm';
-import { createLogger } from '@utils/logger';
-import { errorFactory } from '@utils/errors';
+import { createLogger } from '../utils/logger';
+import { errorFactory } from '../utils/errors';
 import { RoleService } from './roleService';
 
 const logger = createLogger('UserService');

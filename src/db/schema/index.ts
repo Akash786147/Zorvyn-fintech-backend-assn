@@ -1,7 +1,3 @@
-/**
- * User schema - stores user information
- */
-
 import { pgTable, serial, varchar, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
 import { roles } from './roles';
 

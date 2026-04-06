@@ -1,16 +1,14 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool, PoolClient } from 'pg';
 import config from './environment';
-import { createLogger } from '@utils/logger';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('database');
 
 let db: ReturnType<typeof drizzle> | null = null;
 let pool: Pool | null = null;
 
-/**
- * Initialize database connection
- */
+
 export const initializeDatabase = async (): Promise<void> => {
     try {
         logger.info('Initializing database connection', {

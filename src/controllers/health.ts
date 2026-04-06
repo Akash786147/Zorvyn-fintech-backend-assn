@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { sql } from 'drizzle-orm';
-import { asyncHandler } from '@middleware/errorHandler';
-import { successResponse } from '@utils/response';
-import { getDatabase } from '@config/database';
-import { createLogger } from '@utils/logger';
+import { asyncHandler } from '../middleware/errorHandler';
+import { successResponse } from '../utils/response';
+import { getDatabase } from '../config/database';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('health');
 

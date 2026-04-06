@@ -1,7 +1,3 @@
-/**
- * Swagger/OpenAPI configuration
- */
-
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options = {

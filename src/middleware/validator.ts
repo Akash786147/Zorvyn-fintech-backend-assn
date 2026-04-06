@@ -1,12 +1,7 @@
-/**
- * Validation middleware using Zod
- * Validates request body, params, and query
- */
-
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodSchema } from 'zod';
-import { errorFactory } from '@utils/errors';
-import { createLogger } from '@utils/logger';
+import { errorFactory } from '../utils/errors';
+import { createLogger } from '../utils/logger';
 
 const logger = createLogger('validation');
 

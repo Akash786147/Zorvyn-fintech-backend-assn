@@ -1,11 +1,7 @@
-/**
- * Controllers for dashboard and analytics
- */
-
 import { Request, Response } from 'express';
-import { asyncHandler } from '@middleware/errorHandler';
-import { successResponse, errorResponse } from '@utils/response';
-import { DashboardService } from '@services/dashboardService';
+import { asyncHandler } from '../middleware/errorHandler';
+import { successResponse, errorResponse } from '../utils/response';
+import { DashboardService } from '../services/dashboardService';
 
 export const getDashboardSummary = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.id;

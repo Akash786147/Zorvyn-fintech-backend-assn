@@ -1,7 +1,3 @@
-/**
- * Financial Record schema - stores transaction/entry data
- */
-
 import {
   pgTable,
   serial,

@@ -1,13 +1,8 @@
-/**
- * Permission Service with RBAC + ABAC support
- * Handles resource-action based permissions with optional caching
- */
-
-import { getDatabase } from '@config/database';
-import { users, roles as rolesTable } from '@db/schema';
+import { getDatabase } from '../config/database';
+import { users, roles as rolesTable } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { createLogger } from '@utils/logger';
-import { getCached, setCached, deleteCached } from '@utils/redis';
+import { createLogger } from '../utils/logger';
+import { getCached, setCached, deleteCached } from '../utils/redis';
 
 const logger = createLogger('PermissionService');
 

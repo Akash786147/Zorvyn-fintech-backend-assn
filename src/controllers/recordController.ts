@@ -1,11 +1,7 @@
-/**
- * Controllers for financial records
- */
-
 import { Request, Response } from 'express';
-import { asyncHandler } from '@middleware/errorHandler';
-import { successResponse, errorResponse } from '@utils/response';
-import { FinancialRecordService } from '@services/financialRecordService';
+import { asyncHandler } from '../middleware/errorHandler';
+import { successResponse, errorResponse } from '../utils/response';
+import { FinancialRecordService } from '../services/financialRecordService';
 
 export const createRecord = asyncHandler(async (req: Request, res: Response) => {
   const { amount, type, category, transactionDate, description } = req.body;

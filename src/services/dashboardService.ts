@@ -2,8 +2,8 @@
  * Dashboard Service - handles analytics and summary data
  */
 
-import { createLogger } from '@utils/logger';
-import { errorFactory } from '@utils/errors';
+import { createLogger } from '../utils/logger';
+import { errorFactory } from '../utils/errors';
 import { FinancialRecordService } from './financialRecordService';
 
 const logger = createLogger('DashboardService');

@@ -1,16 +1,16 @@
 import express, { Express } from 'express';
 import swaggerUi from 'swagger-ui-express';
-import config from '@config/environment';
-import { swaggerSpec } from '@config/swagger';
-import { configureMiddleware } from '@config/middleware';
-import { initializeDatabase, closeDatabase } from '@config/database';
-import { initializeRedis, closeRedis } from '@utils/redis';
-import { errorHandler, notFoundHandler } from '@middleware/errorHandler';
-import { requestIdMiddleware } from '@middleware/requestId';
-import healthRoutes from '@routes/health';
-import router from '@routes/index';
+import config from './config/environment';
+import { swaggerSpec } from './config/swagger';
+import { configureMiddleware } from './config/middleware';
+import { initializeDatabase, closeDatabase } from './config/database';
+import { initializeRedis, closeRedis } from './utils/redis';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { requestIdMiddleware } from './middleware/requestId';
+import healthRoutes from './routes/health';
+import router from './routes/index';
 
-import { createLogger } from '@utils/logger';
+import { createLogger } from './utils/logger';
 
 const logger = createLogger('app');
 

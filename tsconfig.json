@@ -23,20 +23,6 @@
     "ignoreDeprecations": "6.0",
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@config/*": ["./src/config/*"],
-      "@routes/*": ["./src/routes/*"],
-      "@controllers/*": ["./src/controllers/*"],
-      "@services/*": ["./src/services/*"],
-      "@middleware/*": ["./src/middleware/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@types/*": ["./src/types/*"],
-      "@db/*": ["./src/db/*"],
-      "@validators/*": ["./src/validators/*"],
-      "@schemas/*": ["./src/schemas/*"]
-    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "build"]

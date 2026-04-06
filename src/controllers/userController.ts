@@ -1,12 +1,8 @@
-/**
- * Controllers for user management
- */
-
 import { Request, Response } from 'express';
-import { asyncHandler } from '@middleware/errorHandler';
-import { successResponse, errorResponse } from '@utils/response';
-import { UserService } from '@services/userService';
-import { RoleService } from '@services/roleService';
+import { asyncHandler } from '../middleware/errorHandler';
+import { successResponse, errorResponse } from '../utils/response';
+import { UserService } from '../services/userService';
+import { RoleService } from '../services/roleService';
 
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
   const { username, email, name, roleName } = req.body;
@@ -43,7 +39,15 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 
   res.status(200).json(
     successResponse(
-      allUsers.map((u) => ({
+      allUsers.map((u: {
+        id: number;
+        username: string;
+        email: string;
+        name: string;
+        roleId: number;
+        isActive: boolean;
+        createdAt: unknown;
+      }) => ({
         id: u.id,
         username: u.username,
         email: u.email,

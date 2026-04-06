@@ -1,7 +1,7 @@
 import express from "express";
-import userRoutes from '@routes/users';
-import recordRoutes from '@routes/records';
-import dashboardRoutes from '@routes/dashboard';
+import userRoutes from './users';
+import recordRoutes from './records';
+import dashboardRoutes from './dashboard';
 
 const Router = express.Router();
 

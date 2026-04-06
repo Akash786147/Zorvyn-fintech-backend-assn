@@ -1,12 +1,8 @@
-/**
- * Financial Record Service - handles financial records CRUD and queries
- */
-
-import { getDatabase } from '@config/database';
-import { financialRecords } from '@db/schema';
+import { getDatabase } from '../config/database';
+import { financialRecords } from '../db/schema';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
-import { createLogger } from '@utils/logger';
-import { errorFactory } from '@utils/errors';
+import { createLogger } from '../utils/logger';
+import { errorFactory } from '../utils/errors';
 
 const logger = createLogger('FinancialRecordService');
 

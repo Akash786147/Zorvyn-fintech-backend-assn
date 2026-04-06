@@ -1,7 +1,3 @@
-/**
- * Role schema - defines available roles in the system
- */
-
 import { pgTable, serial, varchar, timestamp, text } from 'drizzle-orm/pg-core';
 
 export const roles = pgTable('roles', {
