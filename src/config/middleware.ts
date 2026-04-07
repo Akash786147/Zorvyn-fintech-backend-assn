@@ -10,11 +10,21 @@ const logger = createLogger('middleware');
 
 export const configureMiddleware = (app: Express): void => {
 
-    app.use(helmet());
+    app.use(helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+                imgSrc: ["'self'", "data:", "validator.swagger.io"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            },
+        },
+    }));
 
     app.use(
         cors({
-            origin: config.allowedOrigins,
+            origin: "*",
             credentials: true,
             optionsSuccessStatus: 200,
         })
