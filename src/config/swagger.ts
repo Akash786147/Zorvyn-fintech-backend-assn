@@ -21,6 +21,10 @@ const options = {
                 description: 'Development server',
             },
             {
+                url: 'https://zorvyn-fintech-backend-assn.vercel.app/api/v1',
+                description: 'Vercel Production server',
+            },
+            {
                 url: 'https://api.zorvyn.com/api/v1',
                 description: 'Production server',
             },
