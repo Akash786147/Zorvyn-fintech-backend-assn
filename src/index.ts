@@ -56,8 +56,7 @@ const createApp = (): Express => {
   });
 
   // Swagger/OpenAPI documentation
-  app.use('/api/docs', swaggerUi.serve);
-  app.get('/api/docs', swaggerUi.setup(swaggerSpec, { swaggerOptions: { url: '/api/docs.json' } }));
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { swaggerOptions: { url: '/api/docs.json' } }));
   app.get('/api/docs.json', (_req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
