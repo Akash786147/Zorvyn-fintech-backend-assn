@@ -56,8 +56,31 @@ const createApp = (): Express => {
   });
 
   // Swagger/OpenAPI documentation
-  const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
-  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }', customCssUrl: CSS_URL }));
+  const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css";
+  const customOptions = {
+    customCss: '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
+    customCssUrl: CSS_URL,
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js'
+    ],
+    swaggerOptions: {
+      url: '/api/docs.json'
+    }
+  };
+  
+  // Intercept the default static file requests and redirect them to CDN
+  const swaggerAssetUrls = {
+    'swagger-ui.css': 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.css',
+    'swagger-ui-bundle.js': 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js',
+    'swagger-ui-standalone-preset.js': 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js'
+  };
+  Object.entries(swaggerAssetUrls).forEach(([file, url]) => {
+    app.get(`/api/docs/${file}`, (_req, res) => res.redirect(url));
+  });
+
+  app.use('/api/docs', swaggerUi.serveFiles(swaggerSpec, customOptions), swaggerUi.setup(swaggerSpec, customOptions));
+  
   app.get('/api/docs.json', (_req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
