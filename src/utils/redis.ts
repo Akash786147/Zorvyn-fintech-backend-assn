@@ -7,9 +7,7 @@ const logger = createLogger('redis');
 let redisClient: RedisClientType | null = null;
 let isConnected = false;
 
-/**
- * Initialize Redis client
- */
+
 export const initializeRedis = async (): Promise<void> => {
     if (!config.redis.enabled) {
         logger.info('Redis caching disabled');
@@ -48,9 +46,6 @@ export const initializeRedis = async (): Promise<void> => {
     }
 };
 
-/**
- * Close Redis connection
- */
 export const closeRedis = async (): Promise<void> => {
     if (redisClient && isConnected) {
         try {
@@ -63,9 +58,7 @@ export const closeRedis = async (): Promise<void> => {
     }
 };
 
-/**
- * Get value from Redis cache
- */
+
 export const getCached = async <T = any>(key: string): Promise<T | null> => {
     if (!redisClient || !isConnected) {
         return null;
@@ -85,9 +78,7 @@ export const getCached = async <T = any>(key: string): Promise<T | null> => {
     }
 };
 
-/**
- * Set value in Redis cache with TTL
- */
+
 export const setCached = async <T = any>(
     key: string,
     value: T,
@@ -107,9 +98,7 @@ export const setCached = async <T = any>(
     }
 };
 
-/**
- * Delete value from Redis cache
- */
+
 export const deleteCached = async (key: string): Promise<boolean> => {
     if (!redisClient || !isConnected) {
         return false;
@@ -125,9 +114,6 @@ export const deleteCached = async (key: string): Promise<boolean> => {
     }
 };
 
-/**
- * Clear all cache keys matching a pattern
- */
 export const clearCachePattern = async (pattern: string): Promise<number> => {
     if (!redisClient || !isConnected) {
         return 0;
@@ -146,16 +132,12 @@ export const clearCachePattern = async (pattern: string): Promise<number> => {
     }
 };
 
-/**
- * Check if Redis is connected
- */
+
 export const isRedisConnected = (): boolean => {
     return isConnected;
 };
 
-/**
- * Get Redis client instance (for advanced operations)
- */
+
 export const getRedisClient = (): RedisClientType | null => {
     return redisClient;
 };

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
 import { successResponse, errorResponse } from '../utils/response';
 import { UserService } from '../services/userService';
-import { RoleService } from '../services/roleService';
 
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
   const { username, email, name, roleName } = req.body;
@@ -116,13 +115,5 @@ export const deactivateUser = asyncHandler(async (req: Request, res: Response) =
 
   res.status(200).json(
     successResponse({ id: user.id, isActive: user.isActive }, req.path, 'User deactivated')
-  );
-});
-
-export const getAllRoles = asyncHandler(async (req: Request, res: Response) => {
-  const allRoles = await RoleService.getAllRoles();
-
-  res.status(200).json(
-    successResponse(allRoles, req.path, `Found ${allRoles.length} roles`)
   );
 });

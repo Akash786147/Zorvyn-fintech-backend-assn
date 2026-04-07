@@ -1,22 +1,14 @@
-/**
- * Role Service - handles role management
- */
-
-import { getDatabase } from '../config/database';
 import { roles } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { createLogger } from '../utils/logger';
 import { errorFactory } from '../utils/errors';
+import { db } from '../db';
 
 const logger = createLogger('RoleService');
 
 export class RoleService {
-  /**
-   * Get all roles
-   */
   static async getAllRoles() {
     try {
-      const db = getDatabase();
       return await db.select().from(roles);
     } catch (error) {
       logger.error('Failed to fetch roles', error);
@@ -24,13 +16,14 @@ export class RoleService {
     }
   }
 
-  /**
-   * Get role by ID
-   */
   static async getRoleById(id: number) {
     try {
-      const db = getDatabase();
-      const result = await db.select().from(roles).where(eq(roles.id, id)).limit(1);
+      const result = await db
+        .select()
+        .from(roles)
+        .where(eq(roles.id, id))
+        .limit(1);
+
       if (!result.length) {
         throw errorFactory.notFound('Role not found');
       }
@@ -44,13 +37,14 @@ export class RoleService {
     }
   }
 
-  /**
-   * Get role by name
-   */
   static async getRoleByName(name: string) {
     try {
-      const db = getDatabase();
-      const result = await db.select().from(roles).where(eq(roles.name, name)).limit(1);
+      const result = await db
+        .select()
+        .from(roles)
+        .where(eq(roles.name, name))
+        .limit(1);
+  
       return result[0] || null;
     } catch (error) {
       logger.error('Failed to fetch role by name', error, { roleName: name });
@@ -58,14 +52,8 @@ export class RoleService {
     }
   }
 
-  /**
-   * Create new role
-   */
   static async createRole(name: string, description?: string) {
     try {
-      const db = getDatabase();
-
-      // Check if role already exists
       const existing = await this.getRoleByName(name);
       if (existing) {
         throw errorFactory.conflict(`Role '${name}' already exists`);
@@ -79,7 +67,6 @@ export class RoleService {
         })
         .returning();
 
-      logger.info('Role created', { roleName: name });
       return result[0];
     } catch (error) {
       if (error instanceof Error) {
@@ -92,9 +79,47 @@ export class RoleService {
     }
   }
 
-  /**
-   * Initialize default roles if they don't exist
-   */
+  static async updateRole(id: number, name: string, description?: string) {
+    try {
+      // Get existing role (validates existence)
+      await this.getRoleById(id);
+
+      const updateData: Partial<{ name: string; description: string }> = {};
+      if (name) updateData.name = name;
+      if (description) updateData.description = description;
+
+      const result = await db
+        .update(roles)
+        .set(updateData)
+        .where(eq(roles.id, id))
+        .returning();
+
+      return result[0];
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw error;
+      }
+      logger.error('Failed to update role', error, { roleId: id });
+      throw errorFactory.serviceUnavailable('Failed to update role');
+    }
+  }
+
+  static async deleteRole(id: number) {
+    try {
+      // Get existing role (validates existence)
+      await this.getRoleById(id);
+
+      await db.delete(roles).where(eq(roles.id, id));
+      return { success: true };
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        throw error;
+      }
+      logger.error('Failed to delete role', error, { roleId: id });
+      throw errorFactory.serviceUnavailable('Failed to delete role');
+    }
+  }
+
   static async initializeDefaultRoles() {
     try {
       const defaultRoles = [

@@ -7,15 +7,17 @@ import {
   numeric,
   text,
   boolean,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
 
 export type FinancialRecordType = 'income' | 'expense';
+export const recordTypeEnum = pgEnum('record_type', ['income', 'expense']);
 
 export const financialRecords = pgTable('financial_records', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull(),
   amount: numeric('amount', { precision: 15, scale: 2 }).notNull(),
-  type: varchar('type', { length: 20 }).notNull(), // 'income' or 'expense'
+  type: recordTypeEnum('type').notNull(),
   category: varchar('category', { length: 100 }).notNull(),
   description: text('description'),
   transactionDate: timestamp('transaction_date').notNull(),

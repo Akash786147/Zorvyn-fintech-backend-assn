@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { z, ZodSchema } from 'zod';
-import { errorFactory } from '../utils/errors';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('validation');
@@ -11,176 +10,258 @@ const logger = createLogger('validation');
 export interface ValidationResult {
     success: boolean;
     data?: Record<string, any>;
-    errors?: Array<{
-        path: string;
-        message: string;
-    }>;
+    errors?: Record<string, string[]>;
 }
 
 /**
- * Format Zod errors into readable messages
+ * Format Zod error messages in a user-friendly way
  */
-const formatZodErrors = (error: z.ZodError<any>): ValidationResult['errors'] => {
-    return error.issues.map((err) => ({
-        path: err.path.join('.'),
-        message: err.message,
-    }));
-};
+const formatZodErrors = (error: z.ZodError<any>): Record<string, string[]> => {
+    const formatted: Record<string, string[]> = {};
 
-/**
- * Create a validation middleware for a specific schema
- * @param schema - Zod schema to validate against
- * @param dataSource - Which part of request to validate: 'body', 'params', 'query', or 'all'
- */
-export const validate = (schema: ZodSchema, dataSource: 'body' | 'params' | 'query' | 'all' = 'body') => {
-    return async (req: Request, _res: Response, next: NextFunction) => {
-        try {
-            let dataToValidate: Record<string, any> = {};
-
-            switch (dataSource) {
-                case 'body':
-                    dataToValidate = { body: req.body };
-                    break;
-                case 'params':
-                    dataToValidate = { params: req.params };
-                    break;
-                case 'query':
-                    dataToValidate = { query: req.query };
-                    break;
-                case 'all':
-                    dataToValidate = {
-                        body: req.body || {},
-                        params: req.params || {},
-                        query: req.query || {},
-                    };
-                    break;
-            }
-
-            // Validate using Zod
-            const result = await schema.parseAsync(dataToValidate);
-
-            // Store validated data in request for controllers
-            (req as any).validated = result;
-
-            // Also merge validated data back for convenience
-            if (result && typeof result === 'object') {
-                const resObj = result as Record<string, any>;
-                if (resObj.body) req.body = resObj.body;
-                if (resObj.params) req.params = resObj.params;
-                if (resObj.query) req.query = resObj.query;
-            }
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const errors = formatZodErrors(error);
-
-                logger.warn('Validation failed', {
-                    path: req.path,
-                    method: req.method,
-                    errors,
-                });
-
-                // Generate user-friendly error message
-                const errorMessage = errors?.map((e) => `${e.path}: ${e.message}`).join('; ') || 'Validation failed';
-
-                return next(
-                    errorFactory.badRequest(`Validation failed: ${errorMessage}`)
-                );
-            }
-
-            logger.error('Unexpected validation error', error as Error);
-            next(errorFactory.badRequest('Invalid request data'));
+    error.issues.forEach((issue: any) => {
+        const path = issue.path.join('.');
+        if (!formatted[path]) {
+            formatted[path] = [];
         }
-    };
+        formatted[path].push(issue.message);
+    });
+
+    return formatted;
 };
 
 /**
- * Simpler version: validates only body
+ * Validate data against a Zod schema
  */
-export const validateBody = (schema: ZodSchema) => validate(schema, 'body');
-
-/**
- * Validates body + params + query
- */
-export const validateAll = (schema: ZodSchema) => validate(schema, 'all');
-
-/**
- * Inline validation function (for use in controllers if needed)
- * Returns { success, data, errors }
- */
-export const validateData = async (schema: ZodSchema, data: any): Promise<ValidationResult> => {
+export const validateData = async (
+    data: any,
+    schema: ZodSchema
+): Promise<ValidationResult> => {
     try {
-        const result = await schema.parseAsync(data);
-        return {
-            success: true,
-            data: (result as Record<string, any>) || {},
-        };
-    } catch (error) {
-        if (error instanceof z.ZodError) {
+        const result = await schema.safeParseAsync(data);
+
+        if (!result.success) {
             return {
                 success: false,
-                errors: formatZodErrors(error) || [],
+                errors: formatZodErrors(result.error),
             };
         }
+
+        return {
+            success: true,
+            data: result.data as Record<string, any>,
+        };
+    } catch (err: any) {
+        logger.error('Validation error:', err);
         return {
             success: false,
-            errors: [{ path: 'unknown', message: 'Validation failed' }],
+            errors: { validation: [err.message || 'Unknown validation error'] },
         };
     }
 };
 
 /**
- * Helper to create combined schema validators
- * Validates body + params in one call
+ * Main validation middleware factory
  */
-export const createCombinedValidator = (bodySchema: ZodSchema, paramsSchema?: ZodSchema) => {
-    return async (req: Request, _res: Response, next: NextFunction) => {
+export const validate = (
+    schema: ZodSchema,
+    dataSource: 'body' | 'query' | 'params' | 'bodyAndParams' = 'body'
+) => {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const dataToValidate: Record<string, any> = {
-                body: req.body || {},
-            };
+            let data = {};
 
-            if (paramsSchema) {
-                dataToValidate.params = req.params || {};
+            if (dataSource === 'body') {
+                data = req.body;
+            } else if (dataSource === 'query') {
+                data = req.query;
+            } else if (dataSource === 'params') {
+                data = req.params;
+            } else if (dataSource === 'bodyAndParams') {
+                data = { ...req.body, ...req.params };
             }
 
-            let combined: ZodSchema;
-            if (paramsSchema) {
-                combined = z.object({
-                    body: bodySchema,
-                    params: paramsSchema,
+            const result = await validateData(data, schema);
+
+            if (!result.success) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: result.errors,
                 });
-            } else {
-                combined = z.object({
-                    body: bodySchema,
-                });
+                return;
             }
 
-            const result = await combined.parseAsync(dataToValidate);
-
-            (req as any).validated = result;
-            if (result && typeof result === 'object') {
-                const resObj = result as Record<string, any>;
-                if (resObj.body) req.body = resObj.body;
-                if (resObj.params) req.params = resObj.params;
+            // Merge validated data back into appropriate source
+            if (dataSource === 'body') {
+                req.body = result.data;
+            } else if (dataSource === 'query') {
+                req.query = result.data as any;
+            } else if (dataSource === 'params') {
+                req.params = result.data as any;
+            } else if (dataSource === 'bodyAndParams') {
+                req.body = result.data;
+                req.params = result.data as any;
             }
-
-            logger.debug('Combined validation passed', {
-                path: req.path,
-                method: req.method,
-            });
 
             next();
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const errors = formatZodErrors(error);
-                logger.warn('Combined validation failed', { errors });
-                return next(
-                    errorFactory.badRequest(
-                        `Validation failed: ${errors?.map((e) => `${e.path}: ${e.message}`).join('; ') || 'Unknown error'}`
-                    )
-                );
+        } catch (err: any) {
+            logger.error('Validation middleware error:', err);
+            res.status(500).json({
+                success: false,
+                message: 'Internal validation error',
+            });
+        }
+    };
+};
+
+/**
+ * Validate request body
+ */
+export const validateBody = (schema: ZodSchema) => {
+    return validate(schema, 'body');
+};
+
+/**
+ * Validate request query parameters
+ */
+export const validateQuery = (schema: ZodSchema) => {
+    return validate(schema, 'query');
+};
+
+/**
+ * Validate request URL parameters
+ */
+export const validateParams = (schema: ZodSchema) => {
+    return validate(schema, 'params');
+};
+
+/**
+ * Validate both body and URL parameters
+ */
+export const validateBodyAndParams = (schema: ZodSchema) => {
+    return validate(schema, 'bodyAndParams');
+};
+
+/**
+ * Find schema key and parse params based on req.path
+ */
+const findSchemaAndParams = (method: string, reqPath: string, schemas: Record<string, ZodSchema>) => {
+    const exactKey = `${method}:${reqPath}`;
+    if (schemas[exactKey]) return { key: exactKey, parsedParams: {} };
+
+    for (const key of Object.keys(schemas)) {
+        if (!key.startsWith(`${method}:`)) continue;
+        const routePattern = key.substring(method.length + 1);
+
+        // Replace URL params like :userId with regex group ([^/]+)
+        const regexPattern = '^' + routePattern.replace(/:[^\/]+/g, '([^/]+)') + '$';
+        const match = reqPath.match(new RegExp(regexPattern));
+
+        if (match) {
+            const paramNames = (routePattern.match(/:[^\/]+/g) || []).map(p => p.substring(1));
+            const parsedParams: Record<string, string> = {};
+            paramNames.forEach((name, i) => {
+                parsedParams[name] = match[i + 1];
+            });
+            return { key, parsedParams };
+        }
+    }
+    return null;
+};
+
+/**
+ * Centralized validation middleware that uses predefined schemas
+ */
+export const validationMiddleware = (validationSchemas: Record<string, ZodSchema>) => {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const method = req.method.toUpperCase();
+        const path = req.path;
+
+        const match = findSchemaAndParams(method, path, validationSchemas);
+        if (!match) {
+            // No schema defined for this endpoint, proceed
+            return next();
+        }
+
+        const { key: schemaKey, parsedParams } = match;
+        const schema = validationSchemas[schemaKey];
+
+        // Flat data object combining all sources
+        const data = {
+            ...req.query,
+            ...parsedParams,
+            ...req.body
+        };
+
+        const result = await validateData(data, schema);
+
+        if (!result.success) {
+            res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: result.errors,
+            });
+            return;
+        }
+
+        // Apply validated data back to request depending on where it came from.
+        // For simplicity, we can update body for everything not a param or query.
+        // But since it's flat, we can just attach it to `req.body` and express will grab what it needs,
+        // or better, just merge back.
+        if (result.data) {
+            // Re-distribute the validated data
+            if (req.method.toUpperCase() === 'GET') {
+                req.query = result.data;
+            } else {
+                // keep params separate if they exist
+                Object.keys(parsedParams).forEach(k => {
+                    if (result.data && result.data[k]) {
+                        req.params[k] = result.data[k];
+                        delete result.data[k];
+                    }
+                });
+                req.body = result.data;
             }
-            next(errorFactory.badRequest('Invalid request data'));
+        }
+
+        next();
+    };
+};
+
+/**
+ * Validate all (body + params) with a combined schema
+ */
+export const validateAll = (schema: ZodSchema) => {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const data = { body: req.body, params: req.params };
+            const result = await validateData(data, schema);
+
+            if (!result.success) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Validation failed',
+                    errors: result.errors,
+                });
+                return;
+            }
+
+            // Update request with validated data
+            if (result.data && result.data.body) {
+                req.body = result.data.body;
+            }
+            if (result.data && result.data.params) {
+                req.params = result.data.params as any;
+            }
+
+            next();
+        } catch (err: any) {
+            logger.error('Validation middleware error:', err);
+            res.status(500).json({
+                success: false,
+                message: 'Internal validation error',
+            });
         }
     };
 };

@@ -1,20 +1,16 @@
-import { getDatabase } from '../config/database';
 import { users } from '../db/schema';
 import { eq, or } from 'drizzle-orm';
 import { createLogger } from '../utils/logger';
 import { errorFactory } from '../utils/errors';
 import { RoleService } from './roleService';
+import { db } from '../db';
+import bcryptjs from 'bcryptjs';
 
 const logger = createLogger('UserService');
 
 export class UserService {
-  /**
-   * Get all users
-   */
   static async getAllUsers(includeInactive = false) {
     try {
-      const db = getDatabase();
-
       if (!includeInactive) {
         return await db.select().from(users).where(eq(users.isActive, true));
       }
@@ -26,12 +22,8 @@ export class UserService {
     }
   }
 
-  /**
-   * Get user by ID
-   */
   static async getUserById(id: number) {
     try {
-      const db = getDatabase();
       const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
 
       if (!result.length) {
@@ -48,12 +40,8 @@ export class UserService {
     }
   }
 
-  /**
-   * Get user by email
-   */
   static async getUserByEmail(email: string) {
     try {
-      const db = getDatabase();
       const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
       return result[0] || null;
     } catch (error) {
@@ -62,24 +50,24 @@ export class UserService {
     }
   }
 
-  /**
-   * Create new user
-   */
+  static async getUserByUsername(username: string) {
+    try {
+      const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+      return result[0] || null;
+    } catch (error) {
+      logger.error('Failed to fetch user by username', error);
+      throw errorFactory.serviceUnavailable('Failed to fetch user');
+    }
+  }
+
   static async createUser(
     username: string,
     email: string,
     name: string,
-    roleName: string
+    roleName: string,
+    password?: string
   ) {
     try {
-      const db = getDatabase();
-
-      // Validate email format
-      if (!email.includes('@')) {
-        throw errorFactory.badRequest('Invalid email format');
-      }
-
-      // Check if user already exists
       const existing = await db
         .select()
         .from(users)
@@ -90,10 +78,18 @@ export class UserService {
         throw errorFactory.conflict('User with this email or username already exists');
       }
 
-      // Get role
       const role = await RoleService.getRoleByName(roleName);
       if (!role) {
         throw errorFactory.badRequest(`Role '${roleName}' does not exist`);
+      }
+
+      // Hash password if provided, otherwise use a default placeholder
+      let hashedPassword = password;
+      if (hashedPassword) {
+        hashedPassword = await bcryptjs.hash(hashedPassword, 10);
+      } else {
+        // Default password for admin-created users (should be changed on first login)
+        hashedPassword = await bcryptjs.hash('TempPassword123!', 10);
       }
 
       const result = await db
@@ -102,6 +98,7 @@ export class UserService {
           username,
           email,
           name,
+          password: hashedPassword,
           roleId: role.id,
         })
         .returning();
@@ -123,9 +120,6 @@ export class UserService {
     }
   }
 
-  /**
-   * Update user
-   */
   static async updateUser(
     id: number,
     updates: {
@@ -136,8 +130,6 @@ export class UserService {
     }
   ) {
     try {
-      const db = getDatabase();
-
       // Get existing user (validates existence)
       await this.getUserById(id);
 
@@ -147,9 +139,6 @@ export class UserService {
 
       if (updates.name) updateData.name = updates.name;
       if (updates.email) {
-        if (!updates.email.includes('@')) {
-          throw errorFactory.badRequest('Invalid email format');
-        }
         updateData.email = updates.email;
       }
       if (updates.isActive !== undefined) updateData.isActive = updates.isActive;

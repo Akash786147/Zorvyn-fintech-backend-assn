@@ -18,9 +18,7 @@ export interface PaginatedResponse<T = any> {
     timestamp: string;
 }
 
-/**
- * Helper to format successful responses
- */
+
 export const successResponse = <T>(
     data: T,
     path: string,

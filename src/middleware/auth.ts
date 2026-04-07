@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { errorFactory } from '../utils/errors';
-import { createLogger } from '../utils/logger';
-import { UserService } from '../services/userService';
-import { PermissionService } from '../services/permissionService';
+import { errorFactory, createLogger } from '../utils/index';
+import { UserService, PermissionService } from '../services/index';
+import {
+    verifyAccessToken,
+} from '../utils/jwt';
 
 const logger = createLogger('auth');
+
 
 export interface AuthenticatedRequest extends Request {
     user?: {
@@ -16,21 +18,38 @@ export interface AuthenticatedRequest extends Request {
     };
 }
 
-/**
- * Authenticate user (verify identity)
- * Expects x-user-id header (for assignment demo)
- * In production, verify JWT tokens here
- */
-export const authenticate = (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
     try {
-        const userId = req.header('x-user-id');
+        const authHeader = req.headers.authorization;
 
-        if (!userId || isNaN(Number(userId))) {
-            logger.warn('Missing or invalid x-user-id header', { path: req.path });
-            return next(errorFactory.unauthorized('Missing x-user-id header'));
+        if (!authHeader) {
+            logger.warn('Missing authorization header', { path: req.path });
+            return next(errorFactory.unauthorized('Authorization header is required'));
         }
 
-        (req as any).user = { id: Number(userId) };
+        const token = authHeader.split(" ")[1];
+
+        const decoded = verifyAccessToken(token);
+        if (!decoded) {
+            logger.warn('Invalid or expired token', { path: req.path });
+            return next(errorFactory.unauthorized('Invalid or expired token'));
+        }
+
+        const userData = await UserService.getUserById(decoded.id);
+        if (!userData.isActive) {
+            logger.warn('User inactive', { userId: decoded.id, path: req.path });
+            return next(errorFactory.forbidden('Your account has been deactivated'));
+        }
+
+        // Attach user info to request
+        (req as any).user = {
+            id: decoded.id,
+            username: decoded.username,
+            email: decoded.email,
+            roleId: decoded.roleId,
+            roleName: decoded.roleName,
+        };
+
         next();
     } catch (error) {
         next(error);

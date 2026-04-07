@@ -3,6 +3,7 @@ import { financialRecords } from '../db/schema';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { createLogger } from '../utils/logger';
 import { errorFactory } from '../utils/errors';
+import { db } from '../db';
 
 const logger = createLogger('FinancialRecordService');
 
@@ -16,13 +17,9 @@ export interface FilterOptions {
 }
 
 export class FinancialRecordService {
-  /**
-   * Get all records for a user
-   */
+
   static async getUserRecords(userId: number, filters?: FilterOptions) {
     try {
-      const db = getDatabase();
-
       const conditions: any[] = [
         eq(financialRecords.userId, userId),
         eq(financialRecords.isDeleted, false),
@@ -64,7 +61,6 @@ export class FinancialRecordService {
    */
   static async getRecordById(id: number, userId: number) {
     try {
-      const db = getDatabase();
       const result = await db
         .select()
         .from(financialRecords)
@@ -116,7 +112,6 @@ export class FinancialRecordService {
         throw errorFactory.badRequest('Valid transaction date is required');
       }
 
-      const db = getDatabase();
       const result = await db
         .insert(financialRecords)
         .values({
@@ -188,7 +183,6 @@ export class FinancialRecordService {
         updateData.transactionDate = updates.transactionDate;
       }
 
-      const db = getDatabase();
       const result = await db
         .update(financialRecords)
         .set(updateData)
@@ -213,7 +207,6 @@ export class FinancialRecordService {
     try {
       await this.getRecordById(id, userId);
 
-      const db = getDatabase();
       await db
         .update(financialRecords)
         .set({ isDeleted: true, updatedAt: new Date() })

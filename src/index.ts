@@ -7,7 +7,7 @@ import { initializeDatabase, closeDatabase } from './config/database';
 import { initializeRedis, closeRedis } from './utils/redis';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { requestIdMiddleware } from './middleware/requestId';
-import healthRoutes from './routes/health';
+import healthRoutes from './routes/health.router';
 import router from './routes/index';
 
 import { createLogger } from './utils/logger';
@@ -24,6 +24,37 @@ const createApp = (): Express => {
   // Health check routes
   app.use('/', healthRoutes);
 
+  // Root route 404 HTML
+  app.get('/', (_req, res) => {
+    res.status(404).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - Not Found</title>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f8f9fa; color: #333; }
+          .container { text-align: center; max-width: 600px; padding: 40px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+          h1 { font-size: 80px; margin: 0; color: #e74c3c; }
+          h2 { font-size: 24px; margin-top: 0; }
+          p { margin-bottom: 30px; color: #6c757d; }
+          a { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; transition: background-color 0.2s; }
+          a:hover { background-color: #0056b3; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>404</h1>
+          <h2>Page Not Found</h2>
+          <p>The page you are looking for does not exist or has been moved.</p>
+          <a href="/api/docs">Go to API Documentation</a>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+
   // Swagger/OpenAPI documentation
   app.use('/api/docs', swaggerUi.serve);
   app.get('/api/docs', swaggerUi.setup(swaggerSpec, { swaggerOptions: { url: '/api/docs.json' } }));
@@ -33,7 +64,7 @@ const createApp = (): Express => {
   });
 
   // API routes
-  app.use('/api/v1',router);
+  app.use('/api/v1', router);
 
   app.use(notFoundHandler);
 

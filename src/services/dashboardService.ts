@@ -21,9 +21,6 @@ export interface DashboardSummary {
 }
 
 export class DashboardService {
-  /**
-   * Get dashboard summary
-   */
   static async getDashboardSummary(userId: number, days: number = 30): Promise<DashboardSummary> {
     try {
       const now = new Date();
@@ -73,9 +70,6 @@ export class DashboardService {
     }
   }
 
-  /**
-   * Get income vs expense trend (weekly)
-   */
   static async getWeeklyTrend(userId: number, weeks: number = 4) {
     try {
       const trend = [];
@@ -108,9 +102,6 @@ export class DashboardService {
     }
   }
 
-  /**
-   * Get income vs expense trend (monthly)
-   */
   static async getMonthlyTrend(userId: number, months: number = 12) {
     try {
       const trend = [];
@@ -147,9 +138,6 @@ export class DashboardService {
     }
   }
 
-  /**
-   * Get category comparison (income vs expense by category)
-   */
   static async getCategoryComparison(userId: number, startDate?: Date, endDate?: Date) {
     try {
       const incomeByCategory = await FinancialRecordService.getCategoryBreakdown(

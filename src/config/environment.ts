@@ -12,6 +12,8 @@ interface Config {
     allowedOrigins: string[];
     jwtSecret: string;
     jwtExpiry: string;
+    jwtRefreshSecret: string;
+    jwtRefreshExpiry: string;
     rateLimitWindowMs: number;
     rateLimitMaxRequests: number;
     redis: {
@@ -32,7 +34,9 @@ const config: Config = {
     logLevel: process.env.LOG_LEVEL || 'info',
     allowedOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(','),
     jwtSecret: process.env.JWT_SECRET || 'your_jwt_secret_key_change_this',
-    jwtExpiry: process.env.JWT_EXPIRY || '7d',
+    jwtExpiry: process.env.JWT_EXPIRY || '1h',
+    jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key_change_this',
+    jwtRefreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
     rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
     rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
     redis: {

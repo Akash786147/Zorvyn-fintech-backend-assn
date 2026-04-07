@@ -1,6 +1,4 @@
-/**
- * Custom error class for API errors
- */
+
 export class AppError extends Error {
     constructor(
         public statusCode: number,
@@ -12,9 +10,7 @@ export class AppError extends Error {
     }
 }
 
-/**
- * Factory functions for common errors
- */
+
 export const errorFactory = {
     badRequest: (message: string = 'Bad Request'): AppError =>
         new AppError(400, message),

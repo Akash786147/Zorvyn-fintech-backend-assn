@@ -27,11 +27,11 @@ const options = {
         ],
         components: {
             securitySchemes: {
-                userId: {
-                    type: 'apiKey',
-                    in: 'header',
-                    name: 'x-user-id',
-                    description: 'User ID for authentication (mock for assignment)',
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                    description: 'Enter your JWT token (e.g. Bearer eyJhb...)',
                 },
             },
             schemas: {
@@ -103,14 +103,13 @@ const options = {
         },
         security: [
             {
-                userId: [],
+                bearerAuth: [],
             },
         ],
     },
     apis: [
-        './src/routes/users.ts',
-        './src/routes/records.ts',
-        './src/routes/dashboard.ts',
+        './src/routes/*.ts',
+        './src/controllers/*.ts',
     ],
 };
 
