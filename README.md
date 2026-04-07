@@ -1,4 +1,4 @@
-# Zorvyn Fintech Backend
+# Fintech Backend
 
 Production-grade fintech backend with enterprise-level access control, caching, and validation.
 
