@@ -3,7 +3,6 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 import express from 'express';
-import config from './environment';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('middleware');
